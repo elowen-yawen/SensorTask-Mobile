@@ -4,7 +4,7 @@
       <text class="header-title">传感器实时数据</text>
       <view class="header-actions">
         <navigator class="history-nav" url="/pages/nav/nav">
-          统一入口
+          返回上一级
         </navigator>
         <button
           class="refresh-btn"
@@ -105,7 +105,15 @@ const filteredDataList = computed(() => {
 
 const formatValue = (key, value) => {
   if (key === "创立时间" && value) {
-    return new Date(value).toLocaleString("zh-CN")
+    return new Date(value).toLocaleString("zh-CN", {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false   
+    })
   }
   return String(value ?? "")
 }

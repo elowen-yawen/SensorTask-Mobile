@@ -15,9 +15,7 @@ const props = defineProps({
 
 let mychart = null
 
-// -------------------------
-// 1. 更新图表 (修复时间解析 & 保持 PC 业务逻辑)
-// -------------------------
+
 const updateChart = (source) => {
   if (!mychart) return
   try {
@@ -27,11 +25,9 @@ const updateChart = (source) => {
       return
     }
 
-    // --- 时间轴处理：修复 Invalid Date ---
     const times = json.map(item => {
       let rawTime = item['创立时间'] || item['采集时间'];
       if (rawTime) {
-        // 兼容 ISO 格式 (T/Z) 且兼容 iOS (横杠转斜杠)
         let formattedTime = rawTime.replace('T', ' ').replace(/\..+/, '').replace('Z', '');
         formattedTime = formattedTime.replace(/-/g, '/');
         
@@ -50,7 +46,6 @@ const updateChart = (source) => {
       return '未知';
     });
 
-    // --- 字段提取逻辑：保持 PC 端原始逻辑 ---
     const elemKeys = Object.keys(json[0])
     const exclude = ['id', '设备编号', '数据类型', '创立时间', '采集时间']
     const fields = elemKeys.filter(k => !exclude.includes(k))
@@ -69,8 +64,26 @@ const updateChart = (source) => {
     }))
 
     mychart.setOption({
-      tooltip: { trigger: 'axis', confine: true },
-      legend: { data: fields, top: '2%' },
+      tooltip: {
+        show: true,
+        trigger: 'axis',
+        axisPointer: {
+          type: 'cross',
+          label: {
+            backgroundColor: '#6a7985'
+          }
+        },
+        backgroundColor: 'rgba(50, 50, 50, 0.7)',
+        borderColor: '#333',
+        borderWidth: 1,
+        padding: 10,
+        textStyle: {
+          color: '#fff',
+          fontSize: 12
+        },
+        confine: true
+      },
+      legend: { data: fields, bottom:'-10px',left:'center' },
       grid: { 
         left: '3%', 
         right: '5%', 
@@ -78,6 +91,23 @@ const updateChart = (source) => {
         top: '18%', 
         containLabel: true 
       },
+	 toolbox: {
+	     show: true, 
+	     orient: 'horizontal', 
+	     itemSize: 15,
+	     itemGap: 10, 
+	     right: '5%', 
+	     top: '0',    
+	     feature: {
+	         magicType: { 
+	             show: true, 
+	             type: ['line', 'bar'] 
+	         },
+	         restore: { show: true }, // 重置
+	         dataView: { show: true, readOnly: false }, // 数据视图
+	         saveAsImage: { show: true }, // ✅ 建议加上这个，测试点击是否有反应
+	     }
+	 },
       xAxis: {
         type: 'category',
         data: times,
@@ -91,10 +121,13 @@ const updateChart = (source) => {
   }
 }
 
-// -------------------------
-// 2. 初始化图表 (原生 DOM 渲染)
-// -------------------------
 const initChart = () => {
+  echarts.env.touchEventsSupported = true
+  echarts.env.wxa = false
+  echarts.env.svgSupported = true
+  echarts.env.canvasSupported = true
+  echarts.env.domSupported = true
+
   const chartDom = document.getElementById('myLineChart')
   if (!chartDom) return
 
@@ -102,25 +135,19 @@ const initChart = () => {
     mychart.dispose()
   }
 
-  // H5 模式下直接初始化，不传 dpr 让 ECharts 自动处理
   mychart = echarts.init(chartDom)
   
-  // 监听窗口缩放
   window.addEventListener('resize', () => mychart?.resize())
   
   updateChart(props.data)
 }
 
-// -------------------------
-// 3. 监听与生命周期
-// -------------------------
 watch(() => [props.data, props.pageSize], () => {
   updateChart(props.data)
 }, { deep: true })
 
 onMounted(() => {
   nextTick(() => {
-    // 给 DOM 留一点渲染时间
     setTimeout(initChart, 100)
   })
 })
@@ -142,7 +169,7 @@ onBeforeUnmount(() => {
 
 .chart-container {
   width: 100%;
-  height: 550rpx; /* 固定高度防止 ECharts 获取不到空间 */
+  height: 550rpx;
   background: #fff;
   border-radius: 16rpx;
   box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.05);

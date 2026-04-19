@@ -3,7 +3,7 @@
     <view class="header">
       <text class="title">行为实时数据</text>
       <view class="header-actions">
-        <navigator class="jump-link" url="/pages/nav/nav">统一入口</navigator>
+        <navigator class="jump-link" url="/pages/nav/nav">返回上一级</navigator>
         <button
           class="refresh-btn"
           type="primary"

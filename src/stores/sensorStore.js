@@ -12,7 +12,7 @@ export const sensorStore = defineStore("sensorStore", () => {
 
     console.log("接口数据:", response.data)
 
-    sensorData.value = response.data   // ⭐关键就在这里
+    sensorData.value = response.data  
   }
 
   return { sensorData, fetchData, sensorValue }

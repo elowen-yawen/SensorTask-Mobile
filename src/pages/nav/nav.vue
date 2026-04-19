@@ -1,29 +1,31 @@
 <template>
   <view class="page safe-area-bottom">
     <view class="header">
-      <text class="title">统一导航入口</text>
-      <text class="subtitle">请选择</text>
     </view>
 
     <view class="group">
-      <text class="group-title">数据监测</text>
+      <text class="group-title">传感器数据</text>
       <navigator class="nav-item" url="/pages/index/index"
         >传感器实时数据</navigator
       >
       <navigator class="nav-item" url="/pages/historyInfo/historyInfo"
         >传感器历史数据</navigator
       >
-      <navigator class="nav-item" url="/pages/behaviorRealTime/behaviorRealTime"
-        >行为实时数据</navigator
-      >
-      <navigator class="nav-item" url="/pages/behaviorInfo/behaviorInfo"
-        >行为历史数据</navigator
-      >
-      
     </view>
+	
+	<view class="group">
+	  <text class="group-title">行为数据</text>
+	  <navigator class="nav-item" url="/pages/behaviorRealTime/behaviorRealTime"
+	    >行为实时数据</navigator
+	  >
+	  <navigator class="nav-item" url="/pages/behaviorInfo/behaviorInfo"
+	    >行为历史数据</navigator
+	  >
+	  
+	</view>
 
     <view class="group">
-      <text class="group-title">设备与指令</text>
+      <text class="group-title">设备数据</text>
       <navigator class="nav-item" url="/pages/deviceInfo/deviceInfo"
         >设备管理中心</navigator
       >
@@ -32,7 +34,7 @@
       >
     </view>
 	<view class="group">
-		<text class="group-title">故障记录</text>
+		<text class="group-title">故障管理</text>
 		<navigator class="nav-item" url="/pages/errHistory/errHistory"
 		  >故障历史记录</navigator
 		>

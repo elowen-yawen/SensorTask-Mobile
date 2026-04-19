@@ -2,7 +2,7 @@
   <view class="page safe-area-bottom">
     <view class="header">
       <text class="title">指令配置中心</text>
-      <navigator class="jump-link" url="/pages/nav/nav">统一入口</navigator>
+      <navigator class="jump-link" url="/pages/nav/nav">返回上一级</navigator>
     </view>
 
     <view class="section-card">

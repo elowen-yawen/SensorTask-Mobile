@@ -4,7 +4,7 @@
     {
       "path": "pages/nav/nav",
       "style": {
-        "navigationBarTitleText": "统一导航入口"
+        "navigationBarTitleText": "菜单中心"
       }
     },
     {
