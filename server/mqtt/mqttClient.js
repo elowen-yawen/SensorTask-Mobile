@@ -1,7 +1,9 @@
 const mqtt = require('mqtt')
 const EventEmitter = require('events')
-const Joi = require('joi')
 const promisePool = require('../config/promisepool')
+const { handleMessage: handleSensorData, SENSOR_TOPIC } = require('./sensorData/index')
+const { handleMessage: handleBehaviorData, BEHAVIOR_TOPIC } = require('./behaviorData/index')
+const { handleMessage: handleErrorData, ERROR_TOPIC } = require('./ErrorMsg/index')
 
 class MqttClient extends EventEmitter {
     static defaultSetting = {
@@ -76,74 +78,24 @@ class MqttClient extends EventEmitter {
                 return
             }
 
-            if (topic === 'SensorData/add') {
-                info.c_time = new Date()
-                const schema = Joi.object({
-                    id: Joi.number().required(),
-                    d_no: Joi.number().required(),
-                    field1: Joi.number().required(),
-                    field2: Joi.number().required(),
-                    field3: Joi.number().required(),
-                    field4: Joi.number().required(),
-                    field5: Joi.number().required(),
-                    online: Joi.string().required(),
-                    c_time: Joi.date().required()
-                })
-                const { error } = schema.validate(info)
-                if (error) {
-                    console.log(error)
-                } else {
-                    console.log(info)
-                    this.emit('message', topic, info)
-                    this.SaveSensorData(info)
+            if (topic === SENSOR_TOPIC) {
+                const result = handleSensorData(topic, payload)
+                if (result) {
+                    this.emit('message', topic, result)
                 }
             }
 
-            if (topic === 'BehaviorData/add') {
-                info.c_time = new Date()
-                const schema = Joi.object({
-                    id: Joi.number().required(),
-                    d_no: Joi.number().required(),
-                    field1: Joi.number().required(),
-                    field2: Joi.number().required(),
-                    field3: Joi.number().required(),
-                    field4: Joi.number().required(),
-                    field5: Joi.number().required(),
-                    field6: Joi.number(),
-                    field7: Joi.number(),
-                    field8: Joi.number(),
-                    field9: Joi.number(),
-                    field10: Joi.number(),
-                    online: Joi.string().required(),
-                    c_time: Joi.date().required()
-                })
-                const { error } = schema.validate(info)
-                if (error) {
-                    console.log(error)
-                } else {
-                    console.log(info)
-                    this.emit('message', topic, info)
-                    this.SaveBehaviorData(info)
+            if (topic === BEHAVIOR_TOPIC) {
+                const result = handleBehaviorData(topic, payload)
+                if (result) {
+                    this.emit('message', topic, result)
                 }
             }
 
-            if (topic === 'ErrorData/add') {
-                info.c_time = new Date()
-                const schema = Joi.object({
-                    id: Joi.number().required(),
-                    d_no: Joi.string().required(),
-                    e_msg: Joi.string().required(),
-                    e_no: Joi.string(),
-                    type: Joi.string(),
-                    c_time: Joi.date().required()
-                })
-                const { error } = schema.validate(info)
-                if (error) {
-                    console.log(error)
-                } else {
-                    console.log(info)
-                    this.emit('message', topic, info)
-                    this.SaveErrorData(info)
+            if (topic === ERROR_TOPIC) {
+                const result = handleErrorData(topic, payload)
+                if (result) {
+                    this.emit('message', topic, result)
                 }
             }
 
@@ -369,55 +321,6 @@ class MqttClient extends EventEmitter {
                 this.client.publish(topic, payload, options, handleSecondPublish)
             }, 100)
         })
-    }
-
-    async SaveSensorData(info) {
-        const params = [info.id, info.d_no, info.field1, info.field2, info.field3, info.field4, info.field5, info.c_time, info.online]
-        try {
-            await promisePool.execute(
-                `insert into t_sensor_data values(?,?,?,?,?,?,?,?,?)`,
-                params
-            )
-        } catch (err) {
-            console.log(err)
-        }
-    }
-
-    async SaveBehaviorData(info) {
-        const params = [
-            info.id,
-            info.d_no,
-            info.field1,
-            info.field2,
-            info.field3,
-            info.field4,
-            info.field5,
-            info.field6 ?? null,
-            info.field7 ?? null,
-            info.field8 ?? null,
-            info.field9 ?? null,
-            info.field10 ?? null,
-            info.c_time,
-            info.online
-        ]
-
-        try {
-            await promisePool.execute(
-                `insert into t_behavior_data values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-                params
-            )
-        } catch (err) {
-            console.error('Save behavior data failed:', err.message)
-        }
-    }
-
-    async SaveErrorData(info) {
-        const params = [info.id, info.d_no, info.c_time, info.e_msg, info.e_no, info.type]
-        try {
-            await promisePool.execute(`insert into t_error_msg values(?,?,?,?,?,?)`, params)
-        } catch (err) {
-            console.log(err)
-        }
     }
 
     checkIfAlive(id) {

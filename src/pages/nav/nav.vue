@@ -39,11 +39,34 @@
 		  >故障历史记录</navigator
 		>
 	</view>
+    <view class="group settings-group">
+      <text class="group-title">显示设置</text>
+      <button
+        class="setting-btn"
+        :class="{ active: visibility.hideId }"
+        size="mini"
+        @click="visibility.toggleHideId"
+      >
+        {{ visibility.hideId ? "显示ID内容" : "隐藏ID内容" }}
+      </button>
+      <button
+        class="setting-btn"
+        :class="{ active: visibility.hideNumber }"
+        size="mini"
+        @click="visibility.toggleHideNumber"
+      >
+        {{ visibility.hideNumber ? "显示编号内容" : "隐藏编号内容" }}
+      </button>
+    </view>
   </view>
   
 </template>
 
 <script setup>
+import { displayStore } from "../../stores/displayStore"
+
+const visibility = displayStore()
+
 const list = [
   { 创立时间: '2024-01-01 10:00', 温度: '23℃', 湿度: '50%' },
   { 创立时间: '2024-01-01 11:00', 温度: '25℃', 湿度: '55%' },
@@ -105,6 +128,28 @@ const list = [
 }
 
 .nav-item:last-child {
+  margin-bottom: 0;
+}
+
+.settings-group {
+  margin-top: 28rpx;
+}
+
+.setting-btn {
+  width: 100%;
+  margin: 0 0 12rpx;
+  color: #2563eb;
+  background: #f8fbff;
+  border: 2rpx solid #dbeafe;
+}
+
+.setting-btn.active {
+  color: #ffffff;
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.setting-btn:last-child {
   margin-bottom: 0;
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <view class="dynamic-node">
+  <view class="dynamic-node" v-if="!shouldHideField(node?.t_name, visibility)">
     <view class="node-header">
       <text class="node-title">{{ node?.t_name || "未命名指令" }}</text>
     </view>
@@ -38,6 +38,18 @@
         <text class="slider-value">{{ numberValue }}</text>
       </view>
 
+      <view v-else-if="nodeType === '4'" class="time-picker-wrap">
+        <picker
+          mode="time"
+          :value="stringValue"
+          @change="onTimeChange"
+        >
+          <view class="time-picker-value">
+            <text>{{ stringValue || "选择时间" }}</text>
+          </view>
+        </picker>
+      </view>
+
       <view v-else class="readonly-wrap">
         <input class="node-input" :value="stringValue" disabled />
       </view>
@@ -60,8 +72,11 @@
 
 <script setup>
 import { computed } from "vue"
+import { displayStore } from "../stores/displayStore"
+import { shouldHideField } from "../utils/fieldVisibility"
 
 defineOptions({ name: "DirectNodeMobile" })
+const visibility = displayStore()
 
 const props = defineProps({
   node: { type: Object, required: true },
@@ -133,6 +148,11 @@ const onSliderChanging = (event) => {
 
 const onSliderChange = async (event) => {
   const value = Number(event.detail.value)
+  await commitValue(value)
+}
+
+const onTimeChange = async (event) => {
+  const value = event.detail.value
   await commitValue(value)
 }
 
@@ -210,6 +230,22 @@ const sortNodes = (nodes) => {
   margin-top: 6rpx;
   font-size: 24rpx;
   color: #6b7280;
+}
+
+.time-picker-wrap {
+  width: 320rpx;
+}
+
+.time-picker-value {
+  height: 68rpx;
+  border: 2rpx solid #dbeafe;
+  border-radius: 12rpx;
+  background: #ffffff;
+  padding: 0 16rpx;
+  font-size: 26rpx;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
 }
 
 .node-children {

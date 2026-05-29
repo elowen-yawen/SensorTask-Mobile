@@ -6,7 +6,8 @@
     </view>
 
     <view class="section-card">
-      <text class="section-title">全局指令配置</text>
+      <text class="section-title">指令配置</text>
+      <!-- 删去全局因为设备只有一组 -->
       <view class="state" v-if="loading">加载中...</view>
       <view class="state" v-else-if="!sourceNodes.length"
         >暂无指令结构数据</view
@@ -23,12 +24,12 @@
       </view>
     </view>
 
-    <view class="section-card">
+    <view class="section-card" style="display:none;">
       <view class="section-head-row">
         <text class="section-title">多设备指令配置</text>
       </view>
 
-      <view class="picker-row">
+      <view class="picker-row" v-if="!hideDevicePicker">
         <text class="picker-label">电车编号ID</text>
         <picker
           class="picker"
@@ -65,12 +66,16 @@ import { onLoad, onPullDownRefresh } from "@dcloudio/uni-app"
 import DirectNodeMobile from "../../components/DirectNodeMobile.vue"
 import { directStore } from "../../stores/directStore"
 import { deviceStore } from "../../stores/deviceStore"
+import { displayStore } from "../../stores/displayStore"
+import { shouldHideField } from "../../utils/fieldVisibility"
 
 const direct = directStore()
 const device = deviceStore()
+const visibility = displayStore()
 
 const loading = ref(false)
 const selectedDeviceId = ref("")
+const hideDevicePicker = computed(() => shouldHideField("电车编号ID", visibility))
 
 const globalFormData = reactive({})
 const deviceFormData = reactive({})

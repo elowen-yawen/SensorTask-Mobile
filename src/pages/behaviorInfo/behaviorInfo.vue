@@ -52,7 +52,7 @@
 
     <scroll-view class="list" scroll-y="true" v-else>
       <view class="data-card" v-for="(item, index) in dataList" :key="index">
-        <view class="row" v-for="(value, key) in item" :key="key">
+        <view class="row" v-for="[key, value] in visibleEntries(item, visibility)" :key="key">
           <text class="key">{{ key }}：</text>
           <text class="value">{{ renderText(value) }}</text>
         </view>
@@ -88,9 +88,13 @@
 import { computed, ref } from "vue"
 import { onLoad, onPullDownRefresh } from "@dcloudio/uni-app"
 import { paginationStore } from "../../stores/paginationStore"
+import { displayStore } from "../../stores/displayStore"
+import { shouldHideField, visibleEntries } from "../../utils/fieldVisibility"
 import LineBar from "../../components/LineBar.vue"
 const store = paginationStore()
+const visibility = displayStore()
 const keyword = ref("")
+const hideDeviceSelector = computed(() => shouldHideField("设备编号ID", visibility))
 const startDate = ref("")
 const endDate = ref("")
 

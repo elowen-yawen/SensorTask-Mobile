@@ -42,7 +42,7 @@
 
     <scroll-view class="list" scroll-y="true" v-else>
       <view class="data-card" v-for="(item, index) in deviceList" :key="index">
-        <view class="row" v-for="(value, key) in item" :key="key">
+        <view class="row" v-for="[key, value] in visibleEntries(item, visibility)" :key="key">
           <text class="key">{{ key }}：</text>
           <text class="value">{{ renderText(value) }}</text>
         </view>
@@ -94,7 +94,7 @@
         <text class="close" @click="closeModal">×</text>
       </view>
 
-      <view class="form-row" v-for="label in labels" :key="label">
+      <view class="form-row" v-for="label in visibleLabels" :key="label">
         <text class="form-label">{{ label }}</text>
         <input
           class="form-input"
@@ -117,10 +117,15 @@
 import { computed, ref } from "vue"
 import { onLoad, onPullDownRefresh } from "@dcloudio/uni-app"
 import { deviceStore } from "../../stores/deviceStore"
+import { displayStore } from "../../stores/displayStore"
+import { shouldHideField, visibleEntries } from "../../utils/fieldVisibility"
 
 const store = deviceStore()
+const visibility = displayStore()
 
 const labels = ["id", "设备名称", "电车编号id", "备注"]
+const visibleLabels = computed(() => labels.filter((label) => !shouldHideField(label, visibility)))
+const hideDeviceSelector = computed(() => shouldHideField("电车编号id", visibility))
 const keyword = ref("")
 const currentPage = ref(1)
 const pageSize = ref(5)
@@ -154,6 +159,7 @@ const buildParams = (page = 1) => {
     currentPage: page,
     pageSize: pageSize.value,
     input: keyword.value,
+    searchMode: visibility.hideNumber ? "deviceName" : "all",
   }
 }
 

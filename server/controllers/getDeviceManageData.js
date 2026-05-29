@@ -1,34 +1,54 @@
 const promisePool = require('../config/promisepool')
 
+const buildDeviceQuery = (searchMode, keywordLike, useCollate = false) => {
+    if (searchMode === 'deviceName') {
+        return {
+            where: useCollate
+                ? 'device_name COLLATE utf8mb4_general_ci LIKE ?'
+                : 'device_name LIKE ?',
+            params: [keywordLike]
+        }
+    }
+
+    return {
+        where: useCollate
+            ? 'number LIKE ? OR device_name COLLATE utf8mb4_general_ci LIKE ?'
+            : 'number LIKE ? OR device_name LIKE ?',
+        params: [keywordLike, keywordLike]
+    }
+}
+
 module.exports = async (req, res) => {
     try {
-        const input = (req.query.input || '').trim() // 去掉前后空格
+        const input = (req.query.input || '').trim()
+        const searchMode = req.query.searchMode || 'all'
         const keywordLike = `%${input}%`
-            console.log('getDeviceManageData params (no pagination):', { input, keywordLike });
+        console.log('getDeviceManageData params (no pagination):', { input, keywordLike, searchMode })
 
-      
+        const queryFields = buildDeviceQuery(searchMode, keywordLike)
         let [deviceData] = await promisePool.query(
-             `SELECT id, number AS '电车编号id', device_name AS '设备名称', 
-             remarks AS '备注', ctime AS '创建时间' 
+            `SELECT id, number AS '鐢佃溅缂栧彿id', device_name AS '璁惧鍚嶇О',
+                    remarks AS '澶囨敞', ctime AS '鍒涘缓鏃堕棿'
              FROM t_device
-             WHERE number LIKE ? OR device_name LIKE ?
+             WHERE ${queryFields.where}
              ORDER BY id`,
-                [keywordLike, keywordLike]
-        );
+            queryFields.params
+        )
 
         if ((!deviceData || deviceData.length === 0) && /\D/.test(input)) {
-            console.log('no results with default LIKE, trying COLLATE fallback for input:', input);
-            [deviceData] = await promisePool.query(
-                `SELECT id, device_name AS '设备名称', remarks AS '备注', 
-                        number AS '电车编号id', ctime AS '创建时间' 
+            console.log('no results with default LIKE, trying COLLATE fallback for input:', input)
+            const fallbackFields = buildDeviceQuery(searchMode, keywordLike, true)
+            ;[deviceData] = await promisePool.query(
+                `SELECT id, device_name AS '璁惧鍚嶇О', remarks AS '澶囨敞',
+                        number AS '鐢佃溅缂栧彿id', ctime AS '鍒涘缓鏃堕棿'
                  FROM t_device
-                 WHERE number LIKE ? OR device_name COLLATE utf8mb4_general_ci LIKE ?
+                 WHERE ${fallbackFields.where}
                  ORDER BY id`,
-                [keywordLike, keywordLike]
-            );
+                fallbackFields.params
+            )
         }
 
-        let diagnostics = null;
+        let diagnostics = null
         if ((!deviceData || deviceData.length === 0) && input) {
             try {
                 const [samples] = await promisePool.query(
@@ -36,42 +56,41 @@ module.exports = async (req, res) => {
                      FROM t_device
                      ORDER BY id
                      LIMIT 10`
-                );
-                diagnostics = samples;
-                console.log('device name samples for diagnostics:', samples);
+                )
+                diagnostics = samples
+                console.log('device name samples for diagnostics:', samples)
             } catch (diagErr) {
-                console.warn('failed to fetch diagnostics samples:', diagErr.message);
+                console.warn('failed to fetch diagnostics samples:', diagErr.message)
             }
         }
 
-            const total = Array.isArray(deviceData) ? deviceData.length : 0;
+        const total = Array.isArray(deviceData) ? deviceData.length : 0
 
         const responsePayload = {
             success: true,
             data: {
                 list: deviceData,
-                    total
-            }
-        };
-
-        // 在 debug 模式下，返回更多关于 input 的信息，便于诊断传输/编码问题
-        if (req.query.debug === '1') {
-            try {
-                const inputHex = Buffer.from(input || '').toString('hex');
-                responsePayload.receivedInput = input;
-                responsePayload.receivedInputHex = inputHex;
-                if (diagnostics) responsePayload.diagnostics = diagnostics;
-            } catch (hexErr) {
-                console.warn('failed to compute input hex:', hexErr.message);
+                total
             }
         }
 
-        res.json(responsePayload);
+        if (req.query.debug === '1') {
+            try {
+                const inputHex = Buffer.from(input || '').toString('hex')
+                responsePayload.receivedInput = input
+                responsePayload.receivedInputHex = inputHex
+                if (diagnostics) responsePayload.diagnostics = diagnostics
+            } catch (hexErr) {
+                console.warn('failed to compute input hex:', hexErr.message)
+            }
+        }
+
+        res.json(responsePayload)
     } catch (err) {
-        console.error('设备查询失败:', err)
+        console.error('璁惧鏌ヨ澶辫触:', err)
         res.status(500).json({
             success: false,
-            message: '设备数据查询失败',
+            message: '璁惧鏁版嵁鏌ヨ澶辫触',
             error: err.message
         })
     }

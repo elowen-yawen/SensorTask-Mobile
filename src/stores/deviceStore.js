@@ -16,6 +16,7 @@ export const deviceStore = defineStore("deviceStore", () => {
           currentPage: params.currentPage || 1,
           pageSize: params.pageSize || 5,
           input: params.input || "",
+          searchMode: params.searchMode || "all",
         },
       })
 

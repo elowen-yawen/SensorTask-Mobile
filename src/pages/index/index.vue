@@ -17,7 +17,7 @@
       </view>
     </view>
 
-    <view class="picker-row" v-if="options.length">
+    <view class="picker-row" v-if="options.length && !hideDeviceSelector">
       <text class="picker-label">设备编号</text>
       <picker
         class="picker"
@@ -47,7 +47,7 @@
         v-for="(item, idx) in filteredDataList"
         :key="idx"
       >
-        <view class="item-row" v-for="(value, key) in item" :key="key">
+        <view class="item-row" v-for="[key, value] in visibleEntries(item, visibility)" :key="key">
           <text class="item-key">{{ key }}：</text>
           <text class="item-value">{{ formatValue(key, value) }}</text>
         </view>
@@ -63,10 +63,14 @@
 import { computed, ref } from "vue"
 import { onLoad, onPullDownRefresh } from "@dcloudio/uni-app"
 import { sensorStore } from "../../stores/sensorStore"
+import { displayStore } from "../../stores/displayStore"
+import { shouldHideField, visibleEntries } from "../../utils/fieldVisibility"
 import LineBar from '../../components/LineBar.vue'
 const store = sensorStore()
+const visibility = displayStore()
 const loading = ref(false)
 const selectedValue = ref("")
+const hideDeviceSelector = computed(() => shouldHideField("设备编号ID", visibility))
 
 const data=computed(()=>store.sensorData?.proccessData)
 const sourceList = computed(() => {

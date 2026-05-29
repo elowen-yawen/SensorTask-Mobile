@@ -41,10 +41,7 @@ export const directStore = defineStore("directStore", () => {
         value,
         d_no,
       }
-      const response = await post(
-        "http://localhost:3000/multipleDirectData",
-        payload,
-      )
+      const response = await post("http://localhost:3000/directData/update", payload)
       return response
     } catch (err) {
       console.error("[Store] handleUpdateData 更新失败:", err)
